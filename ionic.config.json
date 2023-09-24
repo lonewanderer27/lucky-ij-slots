@@ -1,0 +1,7 @@
+{
+  "name": "Lucky IJ Slots",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
