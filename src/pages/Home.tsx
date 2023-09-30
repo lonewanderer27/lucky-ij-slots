@@ -184,6 +184,9 @@ const Home: React.FC = () => {
 
     // reset remaining money
     setRemainingMoney(RemainingMoney);
+
+    // reset previous bets
+    setUserBets(() => []); 
   }
 
   function genWinningNums(): {
@@ -234,6 +237,7 @@ const Home: React.FC = () => {
                 onChange={setUserNums}
                 height={70}
                 wheelMode="normal"
+                disabled={gameState !== GameState.BETTING}
               >
                 {Object.keys(DefaultNums).map((bet) => (
                   <Picker.Column name={bet} key={bet}>
@@ -248,6 +252,7 @@ const Home: React.FC = () => {
             </IonCol>
             <IonCol>
               <IonInput
+                disabled={gameState !== GameState.BETTING}
                 name="bet"
                 fill="outline"
                 className="text-7xl"
@@ -275,7 +280,7 @@ const Home: React.FC = () => {
               <span className="text-4xl">{multiplier}x</span>
             </IonCol>
             <IonCol>
-              <span className="text-4xl">{remainingMoney}</span>
+              <span className="text-4xl">₱ {remainingMoney}</span>
             </IonCol>
           </IonRow>
           <IonRow className="text-center border-solid border-4 ">
@@ -304,7 +309,7 @@ const Home: React.FC = () => {
                   <IonLabel>Spin</IonLabel>
                 </IonButton>
               )}
-              {gameState != GameState.IDLE || remainingMoney === 0 && (
+              {(gameState != GameState.IDLE || remainingMoney === 0) && (
                 <IonButton expand="block" size="large" onClick={() => reset()}>
                   <IonLabel>Reset</IonLabel>
                 </IonButton>
