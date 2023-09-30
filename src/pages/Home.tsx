@@ -190,7 +190,7 @@ const Home: React.FC = () => {
       setWinningNums(winningNums);
       return winningNums;
     } else {
-      // otherwise generate random numbers
+      // otherwise generate random numbers from 1 to 9
       const winningNums = {
         bet1: (Math.floor(Math.random() * 9) + 1).toString(),
         bet2: (Math.floor(Math.random() * 9) + 1).toString(),
@@ -288,7 +288,7 @@ const Home: React.FC = () => {
                   <IonLabel>Spin</IonLabel>
                 </IonButton>
               )}
-              {gameState === GameState.IDLE || remainingMoney === 0  && (
+              {gameState != GameState.IDLE || remainingMoney === 0 && (
                 <IonButton expand="block" size="large" onClick={() => reset()}>
                   <IonLabel>Reset</IonLabel>
                 </IonButton>
