@@ -1,6 +1,6 @@
 import "./Home.css";
 
-import { DefaultBets, Multiplier, Numbers, RemainingMoney } from "../constants";
+import { DefaultBets as DefaultNums, Multiplier, Numbers, RemainingMoney } from "../constants";
 import { GameState, WinOrLose } from "../enums";
 import {
   IonButton,
@@ -16,37 +16,67 @@ import {
   IonToolbar,
 } from "@ionic/react";
 
-import AnimatedNumbers from "react-animated-numbers";
 import Picker from "react-mobile-picker";
+import WinningNumbers from "../components/WinningNumbers";
 import { useIonAlert } from "@ionic/react";
 import { useState } from "react";
 
 const Home: React.FC = () => {
   const [showAlert, hideAlert] = useIonAlert();
-  const [userBets, setUserBets] = useState(() => DefaultBets);
-  const [winningBets, setWinningBets] = useState(() => DefaultBets);
+  const [userNums, setUserNums] = useState(() => DefaultNums);
+  const [userBet, setUserBet] = useState(() => 0);
+  const [winningNums, setWinningNums] = useState(() => DefaultNums);
   const [multiplier, setMultiplier] = useState(() => Multiplier);
   const [remainingMoney, setRemainingMoney] = useState(() => RemainingMoney);
   const [gameState, setGameState] = useState(() => GameState.IDLE);
   const [winOrLose, setWinOrLose] = useState(() => WinOrLose.IDLE);
 
-  console.log("userBets: ", userBets);
-  console.log("winningBets: ", winningBets);
+  console.log("userBets: ", userNums);
+  console.log("winningBets: ", winningNums);
 
-  function Bet() {}
+  function handleBet() {
+    console.info("handleBet");
+    console.info("gameState: ", gameState.toString());
+    
+    switch (gameState) {
+      case GameState.IDLE:
+        bet();
+        break;
+      case GameState.BETTING:
+        if (playChecks()) {
+          play();
+        } else {
+          console.error("Playchecks failed");
+        }
+        break;
+      default:
+        break;
+    }
+  }
 
-  function PlayChecks() {
+  function bet() {
+    // set game state to betting
+    setGameState(GameState.BETTING);
+
+    // reset user bet
+    setUserBet(0);
+
+    // reset user numbers
+    setUserNums(DefaultNums);
+  }
+
+  function playChecks(): boolean {
     let passedChecks = true;
 
-    if (parseInt(userBets.bet1) == 0 || parseInt(userBets.bet1) > 9) {
+    if (parseInt(userNums.bet1) == 0 || parseInt(userNums.bet1) > 9) {
       passedChecks = false;
     }
 
-    if (parseInt(userBets.bet2) == 0 || parseInt(userBets.bet2) > 9) {
+    if (parseInt(userNums.bet2) == 0 || parseInt(userNums.bet2) > 9) {
       passedChecks = false;
     }
 
-    if (parseInt(userBets.bet3) == 0 || parseInt(userBets.bet3) > 9) {
+    if (parseInt(userNums.bet3) == 0 || parseInt(userNums.bet3) > 9) {
       passedChecks = false;
     }
 
@@ -56,6 +86,118 @@ const Home: React.FC = () => {
         message: "Please enter a valid bet",
         buttons: ["OK"],
       });
+      return passedChecks;
+    }
+
+    // check if the user bet is less than or equal to 0
+    if (userBet <= 0) {
+      passedChecks = false;
+      showAlert({
+        header: "Invalid Bet",
+        message: "Please enter a valid bet",
+        buttons: ["OK"],
+      });
+      return passedChecks;
+    }
+
+    // check if the user bet is greater than the remaining money
+    if (userBet > remainingMoney) {
+      passedChecks = false;
+      showAlert({
+        header: "Insufficient Funds",
+        message: "You don't have enough money to bet",
+        buttons: ["OK"],
+      });
+      return passedChecks;
+    }
+
+    return passedChecks;
+  }
+
+  function play() {
+    // generate winning numbers
+    const winningNums = genWinningNums();
+
+    // check if the winning numbers are equal to the user bets
+    if (
+      winningNums.bet1 == userNums.bet1 &&
+      winningNums.bet2 == userNums.bet2 &&
+      winningNums.bet3 == userNums.bet3
+    ) {
+      // if yes, then set the winOrLose to win
+      setWinOrLose(WinOrLose.WIN);
+
+      // increase money by multiplier
+      setRemainingMoney(remainingMoney * multiplier);
+
+      // increase multiplier by 1s
+      setMultiplier(multiplier + 1);
+
+      // set game state to betting
+      setGameState(GameState.BETTING);
+    } else {
+      // if no, then set the winOrLose to lose
+      setWinOrLose(WinOrLose.LOSE);
+
+      // reset multiplier to 2
+      setMultiplier(Multiplier);
+
+      // decrease money by the bet
+      setRemainingMoney(remainingMoney - userBet);
+    }
+  }
+
+  function reset() {
+    // reset multiplier to 2
+    setMultiplier(Multiplier);
+
+    // reset winning numbers
+    setWinningNums(DefaultNums);
+
+    // reset user numbers
+    setUserNums(DefaultNums);
+
+    // reset user bet
+    setUserBet(0);
+
+    // reset game state
+    setGameState(GameState.IDLE);
+
+    // reset win or lose
+    setWinOrLose(WinOrLose.IDLE);
+
+    // reset remaining money
+    setRemainingMoney(RemainingMoney);
+  }
+
+  function genWinningNums(): {
+    bet1: string;
+    bet2: string;
+    bet3: string;
+  } {
+    // generate number from 1 to 4
+    const luck = Math.floor(Math.random() * 4) + 1;
+    console.info("luck: ", luck);
+
+    // check if the luck is 4
+    // then set the winning numbers to the user numbers
+    if (luck == 4) {
+      const winningNums = {
+        bet1: userNums.bet1,
+        bet2: userNums.bet2,
+        bet3: userNums.bet3,
+      };
+      setWinningNums(winningNums);
+      return winningNums;
+    } else {
+      // otherwise generate random numbers
+      const winningNums = {
+        bet1: (Math.floor(Math.random() * 9) + 1).toString(),
+        bet2: (Math.floor(Math.random() * 9) + 1).toString(),
+        bet3: (Math.floor(Math.random() * 9) + 1).toString(),
+      };
+      setWinningNums(winningNums);
+      return winningNums; 
     }
   }
 
@@ -68,38 +210,16 @@ const Home: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonGrid>
-          <IonRow className="border-solid border-4 my-2 justify-center ">
-            <IonCol>
-              <AnimatedNumbers
-                fontStyle={{ fontSize: "8rem" }}
-                animateToNumber={parseInt(winningBets.bet1)}
-                configs={[{ mass: 1, tension: 20, friction: 10 }]}
-              />
-            </IonCol>
-            <IonCol>
-              <AnimatedNumbers
-                fontStyle={{ fontSize: "8rem" }}
-                animateToNumber={parseInt(winningBets.bet2)}
-                configs={[{ mass: 2, tension: 10, friction: 10 }]}
-              />
-            </IonCol>
-            <IonCol>
-              <AnimatedNumbers
-                fontStyle={{ fontSize: "8rem" }}
-                animateToNumber={parseInt(winningBets.bet3)}
-                configs={[{ mass: 3, tension: 7, friction: 10 }]}
-              />
-            </IonCol>
-          </IonRow>
+          <WinningNumbers winningBets={winningNums} />
           <IonRow className="border-solid border-4 my-2">
             <IonCol size="4" className="flex flex-col justify-center">
               <Picker
-                value={userBets}
-                onChange={setUserBets}
+                value={userNums}
+                onChange={setUserNums}
                 height={70}
                 wheelMode="normal"
               >
-                {Object.keys(DefaultBets).map((bet) => (
+                {Object.keys(DefaultNums).map((bet) => (
                   <Picker.Column name={bet} key={bet}>
                     {Numbers.map((option) => (
                       <Picker.Item key={option} value={option}>
@@ -112,9 +232,12 @@ const Home: React.FC = () => {
             </IonCol>
             <IonCol>
               <IonInput
+                name="bet"
                 fill="outline"
                 className="text-7xl"
-                placeholder="500"
+                value={userBet}
+                onIonChange={(e) => setUserBet(parseInt(e.detail.value!))}
+                placeholder={(remainingMoney / 2).toString()}
                 type="number"
                 min={0}
                 minlength={1}
@@ -156,17 +279,17 @@ const Home: React.FC = () => {
           <IonRow>
             <IonCol>
               {gameState === GameState.IDLE && (
-                <IonButton expand="block" size="large">
-                  <IonLabel>Set</IonLabel>
+                <IonButton expand="block" size="large" onClick={() => setGameState(GameState.BETTING)}>
+                  <IonLabel>Play</IonLabel>
                 </IonButton>
               )}
               {gameState === GameState.BETTING && (
-                <IonButton expand="block" size="large">
+                <IonButton expand="block" size="large" onClick={() => handleBet()}>
                   <IonLabel>Spin</IonLabel>
                 </IonButton>
               )}
-              {gameState !== GameState.SPINNING && (
-                <IonButton expand="block" size="large">
+              {gameState === GameState.IDLE || remainingMoney === 0  && (
+                <IonButton expand="block" size="large" onClick={() => reset()}>
                   <IonLabel>Reset</IonLabel>
                 </IonButton>
               )}
