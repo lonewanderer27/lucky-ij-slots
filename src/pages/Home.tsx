@@ -32,8 +32,9 @@ const Home: React.FC = () => {
   const [gameState, setGameState] = useState(() => GameState.IDLE);
   const [winOrLose, setWinOrLose] = useState(() => WinOrLose.IDLE);
 
-  console.log("userBets: ", userNums);
-  console.log("winningBets: ", winningNums);
+  console.log("userNums: ", userNums);
+  console.log("winningNums: ", winningNums);
+  console.log("winningBets: ", userBets);
 
   function handleBet() {
     console.info("handleBet");
