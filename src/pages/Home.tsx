@@ -85,7 +85,7 @@ const Home: React.FC = () => {
     if (passedChecks == false) {
       showAlert({
         header: "Invalid Bet",
-        message: "Please enter a valid bet",
+        message: "Please choose valid numbers",
         buttons: ["OK"],
       });
       return passedChecks;
@@ -96,7 +96,7 @@ const Home: React.FC = () => {
       passedChecks = false;
       showAlert({
         header: "Invalid Bet",
-        message: "Please enter a valid bet",
+        message: "Please enter a valid bet amount",
         buttons: ["OK"],
       });
       return passedChecks;
