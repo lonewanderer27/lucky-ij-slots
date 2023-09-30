@@ -25,6 +25,7 @@ const Home: React.FC = () => {
   const [showAlert, hideAlert] = useIonAlert();
   const [userNums, setUserNums] = useState(() => DefaultNums);
   const [userBet, setUserBet] = useState(() => 0);
+  const [userBets, setUserBets] = useState<number[]>(() => []);
   const [winningNums, setWinningNums] = useState(() => DefaultNums);
   const [multiplier, setMultiplier] = useState(() => Multiplier);
   const [remainingMoney, setRemainingMoney] = useState(() => RemainingMoney);
@@ -111,6 +112,17 @@ const Home: React.FC = () => {
       return passedChecks;
     }
 
+    // check if the user has won previously, and then only allow bet amount to be higher than the previous bet
+    if (winOrLose === WinOrLose.WIN && userBet <= userBets[userBets.length - 1]) {
+      passedChecks = false;
+      showAlert({
+        header: "Invalid Bet",
+        message: "Bet needs to be higher than previous bet",
+        buttons: ["OK"],
+      });
+      return passedChecks;
+    }
+
     return passedChecks;
   }
 
@@ -135,6 +147,9 @@ const Home: React.FC = () => {
 
       // set game state to betting
       setGameState(GameState.BETTING);
+
+      // add user bet to the user bets
+      setUserBets([...userBets, userBet]);
     } else {
       // if no, then set the winOrLose to lose
       setWinOrLose(WinOrLose.LOSE);
