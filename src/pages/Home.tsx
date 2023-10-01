@@ -22,6 +22,7 @@ import {
 } from "@ionic/react";
 
 import Picker from "react-mobile-picker";
+import { ScreenOrientation } from '@awesome-cordova-plugins/screen-orientation';
 import WinningNumbers from "../components/WinningNumbers";
 import { useEffectOnce } from "usehooks-ts";
 import { useIonAlert } from "@ionic/react";
@@ -29,6 +30,7 @@ import { useState } from "react";
 
 const Home: React.FC = () => {
   const [showAlert] = useIonAlert();
+  const [landscape, setLandscape] = useState(() => false);
   const [userNums, setUserNums] = useState(() => DefaultNums);
   const [userBet, setUserBet] = useState(() => 0);
   const [userBets, setUserBets] = useState<number[]>(() => []);
@@ -37,6 +39,18 @@ const Home: React.FC = () => {
   const [remainingMoney, setRemainingMoney] = useState(() => RemainingMoney);
   const [gameState, setGameState] = useState(() => GameState.IDLE);
   const [winOrLose, setWinOrLose] = useState(() => WinOrLose.IDLE);
+
+  useEffectOnce(() => {
+    ScreenOrientation.onChange().subscribe(() => {
+      if (ScreenOrientation.type.startsWith('landscape')) {
+        console.log("landscape");
+        setLandscape(true);
+      } else {
+        console.log("portrait");
+        setLandscape(false);
+      }
+    });
+  })
 
   console.log("userNums: ", userNums);
   console.log("winningNums: ", winningNums);
@@ -253,11 +267,11 @@ const Home: React.FC = () => {
   return (
     <IonPage>
       <IonContent fullscreen>
-        <IonHeader>
+        {!landscape && <IonHeader>
           <IonToolbar>
             <IonTitle>Slot Machine</IonTitle>
           </IonToolbar>
-        </IonHeader>
+        </IonHeader>}
         <IonGrid>
           <IonRow>
             <IonCol size="12" size-md="6">
@@ -319,7 +333,7 @@ const Home: React.FC = () => {
                 </IonCol>
               </IonRow>
               <IonRow
-                className={`text-center font-semibold text-4xl py-5 rounded-2xl color-white ${
+                className={`text-center font-semibold text-4xl py-5 rounded-2xl text-slate-900 ${
                   winOrLose === WinOrLose.WIN
                     ? "bg-gradient-to-r from-green-200 to-green-500"
                     : "bg-gradient-to-r from-rose-300 to-rose-500"
