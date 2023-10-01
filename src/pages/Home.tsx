@@ -22,7 +22,7 @@ import { useIonAlert } from "@ionic/react";
 import { useState } from "react";
 
 const Home: React.FC = () => {
-  const [showAlert, hideAlert] = useIonAlert();
+  const [showAlert] = useIonAlert();
   const [userNums, setUserNums] = useState(() => DefaultNums);
   const [userBet, setUserBet] = useState(() => 0);
   const [userBets, setUserBets] = useState<number[]>(() => []);
@@ -198,25 +198,44 @@ const Home: React.FC = () => {
     const luck = Math.floor(Math.random() * 4) + 1;
     console.info("luck: ", luck);
 
-    // check if the luck is 4
-    // then set the winning numbers to the user numbers
-    if (luck == 4) {
-      const winningNums = {
-        bet1: userNums.bet1,
-        bet2: userNums.bet2,
-        bet3: userNums.bet3,
+    // generate winning numbers based on luck
+    switch (luck) {
+      case 4: {
+        const winningNums = {
+          bet1: userNums.bet1,
+          bet2: userNums.bet2,
+          bet3: userNums.bet3,
+        };
+        setWinningNums(winningNums);
+        return winningNums;
       };
-      setWinningNums(winningNums);
-      return winningNums;
-    } else {
-      // otherwise generate random numbers from 1 to 9
-      const winningNums = {
-        bet1: (Math.floor(Math.random() * 9) + 1).toString(),
-        bet2: (Math.floor(Math.random() * 9) + 1).toString(),
-        bet3: (Math.floor(Math.random() * 9) + 1).toString(),
+      case 3: {
+        const winningNums = {
+          bet1: userNums.bet1,
+          bet2: userNums.bet2,
+          bet3: (Math.floor(Math.random() * 9) + 1).toString(),
+        };
+        setWinningNums(winningNums);
+        return winningNums;
       };
-      setWinningNums(winningNums);
-      return winningNums; 
+      case 2: {
+        const winningNums = {
+          bet1: userNums.bet1,
+          bet2: (Math.floor(Math.random() * 9) + 1).toString(),
+          bet3: (Math.floor(Math.random() * 9) + 1).toString(),
+        };
+        setWinningNums(winningNums);
+        return winningNums;
+      };
+      default: {
+        const winningNums = {
+          bet1: (Math.floor(Math.random() * 9) + 1).toString(),
+          bet2: (Math.floor(Math.random() * 9) + 1).toString(),
+          bet3: (Math.floor(Math.random() * 9) + 1).toString(),
+        };
+        setWinningNums(winningNums);
+        return winningNums;
+      }
     }
   }
 
