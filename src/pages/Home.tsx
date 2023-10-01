@@ -1,6 +1,11 @@
 import "./Home.css";
 
-import { DefaultBets as DefaultNums, Multiplier, Numbers, RemainingMoney } from "../constants";
+import {
+  DefaultBets as DefaultNums,
+  Multiplier,
+  Numbers,
+  RemainingMoney,
+} from "../constants";
 import { GameState, WinOrLose } from "../enums";
 import {
   IonButton,
@@ -18,6 +23,7 @@ import {
 
 import Picker from "react-mobile-picker";
 import WinningNumbers from "../components/WinningNumbers";
+import { useEffectOnce } from "usehooks-ts";
 import { useIonAlert } from "@ionic/react";
 import { useState } from "react";
 
@@ -39,7 +45,7 @@ const Home: React.FC = () => {
   function handleBet() {
     console.info("handleBet");
     console.info("gameState: ", gameState.toString());
-    
+
     switch (gameState) {
       case GameState.IDLE:
         bet();
@@ -114,7 +120,10 @@ const Home: React.FC = () => {
     }
 
     // check if the user has won previously, and then only allow bet amount to be higher than the previous bet
-    if (winOrLose === WinOrLose.WIN && userBet <= userBets[userBets.length - 1]) {
+    if (
+      winOrLose === WinOrLose.WIN &&
+      userBet <= userBets[userBets.length - 1]
+    ) {
       passedChecks = false;
       showAlert({
         header: "Invalid Bet",
@@ -164,6 +173,8 @@ const Home: React.FC = () => {
   }
 
   function reset() {
+    console.info("reset!");
+
     // reset multiplier to 2
     setMultiplier(Multiplier);
 
@@ -186,7 +197,7 @@ const Home: React.FC = () => {
     setRemainingMoney(RemainingMoney);
 
     // reset previous bets
-    setUserBets(() => []); 
+    setUserBets(() => []);
   }
 
   function genWinningNums(): {
@@ -208,7 +219,7 @@ const Home: React.FC = () => {
         };
         setWinningNums(winningNums);
         return winningNums;
-      };
+      }
       case 3: {
         const winningNums = {
           bet1: userNums.bet1,
@@ -217,7 +228,7 @@ const Home: React.FC = () => {
         };
         setWinningNums(winningNums);
         return winningNums;
-      };
+      }
       case 2: {
         const winningNums = {
           bet1: userNums.bet1,
@@ -226,7 +237,7 @@ const Home: React.FC = () => {
         };
         setWinningNums(winningNums);
         return winningNums;
-      };
+      }
       default: {
         const winningNums = {
           bet1: (Math.floor(Math.random() * 9) + 1).toString(),
@@ -248,91 +259,121 @@ const Home: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <IonGrid>
-          <WinningNumbers winningBets={winningNums} />
-          <IonRow className="border-solid border-4 my-2">
-            <IonCol size="4" className="flex flex-col justify-center">
-              <Picker
-                value={userNums}
-                onChange={setUserNums}
-                height={70}
-                wheelMode="normal"
-                disabled={gameState !== GameState.BETTING}
-              >
-                {Object.keys(DefaultNums).map((bet) => (
-                  <Picker.Column name={bet} key={bet}>
-                    {Numbers.map((option) => (
-                      <Picker.Item key={option} value={option}>
-                        <span className="text-4xl">{option}</span>
-                      </Picker.Item>
+          <IonRow>
+            <IonCol size="12" size-md="6">
+              <WinningNumbers winningBets={winningNums} />
+              <IonRow className="border-solid border-4 my-2">
+                <IonCol size="4" className="flex flex-col justify-center">
+                  <Picker
+                    value={userNums}
+                    onChange={setUserNums}
+                    height={70}
+                    wheelMode="normal"
+                    disabled={gameState !== GameState.BETTING}
+                  >
+                    {Object.keys(DefaultNums).map((bet) => (
+                      <Picker.Column name={bet} key={bet}>
+                        {Numbers.map((option) => (
+                          <Picker.Item key={option} value={option}>
+                            <span className="text-4xl">{option}</span>
+                          </Picker.Item>
+                        ))}
+                      </Picker.Column>
                     ))}
-                  </Picker.Column>
-                ))}
-              </Picker>
+                  </Picker>
+                </IonCol>
+                <IonCol>
+                  <IonInput
+                    label="₱"
+                    disabled={gameState !== GameState.BETTING}
+                    name="bet"
+                    fill="outline"
+                    className="text-7xl"
+                    value={userBet}
+                    onIonChange={(e) => setUserBet(parseInt(e.detail.value!))}
+                    placeholder={(remainingMoney / 2).toString()}
+                    type="number"
+                    min={0}
+                    minlength={1}
+                    required
+                    size={5}
+                  />
+                </IonCol>
+              </IonRow>
             </IonCol>
-            <IonCol>
-              <IonInput
-                disabled={gameState !== GameState.BETTING}
-                name="bet"
-                fill="outline"
-                className="text-7xl"
-                value={userBet}
-                onIonChange={(e) => setUserBet(parseInt(e.detail.value!))}
-                placeholder={(remainingMoney / 2).toString()}
-                type="number"
-                min={0}
-                minlength={1}
-                required
-                size={5}
-              />
-            </IonCol>
-          </IonRow>
-          <IonRow>
-            <IonCol size="4" className="text-center">
-              <span className="text-1xl">Multiplier:</span>
-            </IonCol>
-            <IonCol>
-              <span className="text-1xl">Remaining Balance:</span>
-            </IonCol>
-          </IonRow>
-          <IonRow className="mt-[-5px]">
-            <IonCol size="4" className="text-center">
-              <span className="text-4xl">{multiplier}x</span>
-            </IonCol>
-            <IonCol>
-              <span className="text-4xl">₱ {remainingMoney}</span>
-            </IonCol>
-          </IonRow>
-          <IonRow className="text-center border-solid border-4 ">
-            {gameState !== GameState.SPINNING && (
-              <IonCol>
-                {winOrLose === WinOrLose.IDLE && <h1>Place your Bet!</h1>}
-                {winOrLose === WinOrLose.WIN && <h1>You Won!</h1>}
-                {winOrLose === WinOrLose.LOSE && <h1>You Lost!</h1>}
-              </IonCol>
-            )}
-            {gameState === GameState.SPINNING && (
-              <IonCol>
-                <h1>Spinning..</h1>
-              </IonCol>
-            )}
-          </IonRow>
-          <IonRow>
-            <IonCol>
-              {gameState === GameState.IDLE && (
-                <IonButton expand="block" size="large" onClick={() => setGameState(GameState.BETTING)}>
-                  <IonLabel>Play</IonLabel>
-                </IonButton>
-              )}
-              {gameState === GameState.BETTING && (
-                <IonButton expand="block" size="large" onClick={() => handleBet()}>
-                  <IonLabel>Spin</IonLabel>
-                </IonButton>
-              )}
-              {(gameState != GameState.IDLE || remainingMoney === 0) && (
-                <IonButton expand="block" size="large" onClick={() => reset()}>
-                  <IonLabel>Reset</IonLabel>
-                </IonButton>
-              )}
+            <IonCol size="12" size-md="6">
+              <IonRow>
+                <IonCol size="4" className="text-center">
+                  <span className="text-1xl">Multiplier:</span>
+                </IonCol>
+                <IonCol>
+                  <span className="text-1xl">Remaining Balance:</span>
+                </IonCol>
+              </IonRow>
+              <IonRow className="mt-[-5px]">
+                <IonCol size="4" className="text-center">
+                  <span className="text-4xl">{multiplier}x</span>
+                </IonCol>
+                <IonCol>
+                  <span className="text-4xl">₱ {remainingMoney}</span>
+                </IonCol>
+              </IonRow>
+              <IonRow
+                className={`text-center font-semibold text-4xl py-5 rounded-2xl color-white ${
+                  winOrLose === WinOrLose.WIN
+                    ? "bg-gradient-to-r from-green-200 to-green-500"
+                    : "bg-gradient-to-r from-rose-300 to-rose-500"
+                }`}
+              >
+                {gameState !== GameState.SPINNING && (
+                  <IonCol>
+                    {winOrLose === WinOrLose.IDLE && (
+                      <span>Place your Bet!</span>
+                    )}
+                    {winOrLose === WinOrLose.WIN && <span>You Won!</span>}
+                    {winOrLose === WinOrLose.LOSE && <span>You Lost!</span>}
+                  </IonCol>
+                )}
+                {gameState === GameState.SPINNING && (
+                  <IonCol>
+                    <h1>Spinning..</h1>
+                  </IonCol>
+                )}
+              </IonRow>
+              <IonRow>
+                <IonCol className="p-0">
+                  {gameState === GameState.IDLE && (
+                    <IonButton
+                      className="my-4"
+                      expand="block"
+                      size="large"
+                      onClick={() => setGameState(GameState.BETTING)}
+                    >
+                      <IonLabel>Play</IonLabel>
+                    </IonButton>
+                  )}
+                  {gameState === GameState.BETTING && (
+                    <IonButton
+                      className="my-4"
+                      expand="block"
+                      size="large"
+                      onClick={() => handleBet()}
+                    >
+                      <IonLabel>Spin</IonLabel>
+                    </IonButton>
+                  )}
+                  {(gameState != GameState.IDLE || remainingMoney === 0) && (
+                    <IonButton
+                      className="my-4"
+                      expand="block"
+                      size="large"
+                      onClick={() => reset()}
+                    >
+                      <IonLabel>Reset</IonLabel>
+                    </IonButton>
+                  )}
+                </IonCol>
+              </IonRow>
             </IonCol>
           </IonRow>
         </IonGrid>
